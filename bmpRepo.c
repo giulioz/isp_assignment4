@@ -1,31 +1,21 @@
 #include "bmpRepo.h"
 
-#include <stdio.h>
 #include <assert.h>
+#include <stdio.h>
 
-BmpRepo* bmpRepo_init(void) {
+BmpRepo* bmpRepo_init(CleanupMgr* mgr) {
+  assert(mgr != NULL);
+
   BmpRepo* repo = (BmpRepo*)malloc(sizeof(BmpRepo));
   if (repo != NULL) {
     repo->lastBmpId = 0;
     repo->entries = NULL;
+    repo->mgr = mgr;
+    cleanupMgr_addPtr(mgr, repo);
   } else {
     printf("[ERROR] Memory allocation failed!\n\n");
   }
   return repo;
-}
-
-void bmpRepo_free(BmpRepo* repo) {
-  if (repo != NULL) {
-    if (repo->entries != NULL) {
-      for (int i = 0; i < repo->lastBmpId; ++i) {
-        if (repo->entries[i].pixelData != NULL) {
-          free(repo->entries[i].pixelData);
-        }
-      }
-      free(repo->entries);
-    }
-    free(repo);
-  }
 }
 
 BmpRepoEntry* bmpRepo_addEmptyBmp(BmpRepo* repo, size_t width, size_t height) {
@@ -38,6 +28,7 @@ BmpRepoEntry* bmpRepo_addEmptyBmp(BmpRepo* repo, size_t width, size_t height) {
     printf("[ERROR] Memory allocation failed!\n\n");
     return NULL;
   }
+  cleanupMgr_replacePtr(repo->mgr, repo->entries, newEntries);
 
   repo->entries = newEntries;
   BmpRepoEntry* newEntry = &repo->entries[repo->lastBmpId];
@@ -50,6 +41,7 @@ BmpRepoEntry* bmpRepo_addEmptyBmp(BmpRepo* repo, size_t width, size_t height) {
     printf("[ERROR] Memory allocation failed!\n\n");
     return NULL;
   }
+  cleanupMgr_addPtr(repo->mgr, newEntry->pixelData);
 
   repo->lastBmpId = newLastBmpId;
   return newEntry;

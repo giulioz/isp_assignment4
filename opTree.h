@@ -2,6 +2,7 @@
 #define OPTREE_H
 
 #include "bmpRepo.h"
+#include "cleanupMgr.h"
 
 typedef enum BlendMode {
   BLEND_NORMAL,
@@ -11,7 +12,7 @@ typedef enum BlendMode {
 
 typedef struct OpTreeNode {
   int layerId;
-  
+
   BmpRepoEntry* associatedBmp;
   int destX, destY;
   int srcX, srcY;
@@ -19,24 +20,22 @@ typedef struct OpTreeNode {
   BlendMode blendMode;
 
   // Tree structure
-  struct OpTreeNode *parent; // NULL for root
-  struct OpTreeNode **children;
+  struct OpTreeNode* parent;  // NULL for root
+  struct OpTreeNode** children;
   int nChildren;
 } OpTreeNode;
 
 // Returns NULL if failed
-OpTreeNode *opTree_createNode(OpTreeNode *parent, int layerId);
+OpTreeNode* opTree_createNode(OpTreeNode* parent, int layerId, CleanupMgr* mgr);
 
 // Returns NULL if failed
-OpTreeNode *opTree_createRoot(void);
+OpTreeNode* opTree_createRoot(CleanupMgr* mgr);
 
 // Returns -1 if failed
-int opTree_appendChildNode(OpTreeNode *parent, OpTreeNode *child);
+int opTree_appendChildNode(OpTreeNode* parent, OpTreeNode* child,
+                           CleanupMgr* mgr);
 
-// Will NOT free the bitmaps
-void opTree_freeNode(OpTreeNode *node);
-void opTree_freeTree(OpTreeNode *root);
+BmpRepoEntry* opTree_renderBranch(OpTreeNode* endpoint, BmpRepo* bmpRepo,
+                                  CleanupMgr* mgr);
 
-BmpRepoEntry* opTree_renderBranch(OpTreeNode *endpoint, BmpRepo* bmpRepo);
-
-#endif // OPTREE_H
+#endif  // OPTREE_H

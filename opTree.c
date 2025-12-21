@@ -1,10 +1,13 @@
 #include "opTree.h"
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 
-OpTreeNode* opTree_createNode(OpTreeNode* parent, int layerId) {
+OpTreeNode* opTree_createNode(OpTreeNode* parent, int layerId,
+                              CleanupMgr* mgr) {
+  assert(mgr != NULL);
+
   OpTreeNode* node = (OpTreeNode*)malloc(sizeof(OpTreeNode));
   if (node != NULL) {
     node->parent = parent;
@@ -12,15 +15,26 @@ OpTreeNode* opTree_createNode(OpTreeNode* parent, int layerId) {
     node->nChildren = 0;
     node->layerId = layerId;
     node->associatedBmp = NULL;
+    node->destX = 0;
+    node->destY = 0;
+    node->srcX = 0;
+    node->srcY = 0;
+    node->clipWidth = 0;
+    node->clipHeight = 0;
+    node->blendMode = BLEND_NORMAL;
+    cleanupMgr_addPtr(mgr, node);
   } else {
     printf("[ERROR] Memory allocation failed!\n\n");
   }
   return node;
 }
 
-OpTreeNode* opTree_createRoot(void) { return opTree_createNode(NULL, 0); }
+OpTreeNode* opTree_createRoot(CleanupMgr* mgr) {
+  return opTree_createNode(NULL, 0, mgr);
+}
 
-int opTree_appendChildNode(OpTreeNode* parent, OpTreeNode* child) {
+int opTree_appendChildNode(OpTreeNode* parent, OpTreeNode* child,
+                           CleanupMgr* mgr) {
   assert(parent != NULL);
   assert(child != NULL);
 
@@ -30,6 +44,7 @@ int opTree_appendChildNode(OpTreeNode* parent, OpTreeNode* child) {
     printf("[ERROR] Memory allocation failed!\n\n");
     return -1;
   }
+  cleanupMgr_replacePtr(mgr, parent->children, newChildren);
 
   parent->children = newChildren;
   parent->children[parent->nChildren] = child;
@@ -41,25 +56,5 @@ int opTree_appendChildNode(OpTreeNode* parent, OpTreeNode* child) {
   return 0;
 }
 
-void opTree_freeNode(OpTreeNode* node) {
-  if (node != NULL) {
-    if (node->children != NULL) {
-      free(node->children);
-    }
-    free(node);
-  }
-}
-
-void opTree_freeTree(OpTreeNode* root) {
-  if (root != NULL) {
-    if (root->children != NULL) {
-      for (size_t i = 0; root->children[i] != NULL; ++i) {
-        opTree_freeTree(root->children[i]);
-      }
-      free(root->children);
-    }
-    free(root);
-  }
-}
-
-BmpRepoEntry* opTree_renderBranch(OpTreeNode* endpoint, BmpRepo* bmpRepo) {}
+BmpRepoEntry* opTree_renderBranch(OpTreeNode* endpoint, BmpRepo* bmpRepo,
+                                  CleanupMgr* mgr) {}

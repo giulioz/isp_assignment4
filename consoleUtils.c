@@ -3,13 +3,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-char* readStringAlloc(void) {
+char* readStringAlloc(CleanupMgr* mgr) {
   size_t size = 1;
   size_t len = 0;
   char* str = (char*)calloc(size, sizeof(char));
   if (str == NULL) {
     return NULL;
   }
+  cleanupMgr_addPtr(mgr, str);
 
   int c;
   while ((c = getchar()) != '\n' && c != EOF) {
@@ -18,9 +19,9 @@ char* readStringAlloc(void) {
       size += 1;
       char* newStr = (char*)realloc(str, size);
       if (newStr == NULL) {
-        free(str);
         return NULL;
       }
+      cleanupMgr_replacePtr(mgr, str, newStr);
       str = newStr;
     }
   }

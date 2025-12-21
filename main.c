@@ -3,10 +3,20 @@
 #include <stdlib.h>
 
 #include "bmpRepo.h"
+#include "cleanupMgr.h"
+#include "opTree.h"
 #include "sdlViewer.h"
 
 int main(int argc, char* argv[]) {
   int canvasWidth = 0, canvasHeight = 0;
+  BmpRepo* bmpRepo;
+  OpTreeNode* rootOpNode;
+  CleanupMgr* cleanupMgr;
+
+  cleanupMgr = cleanupMgr_init();
+  if (cleanupMgr == NULL) {
+    return 1;
+  }
 
   if (argc != 3) {
     printf("[ERROR] Invalid amount of command line parameters!\n");
@@ -27,22 +37,28 @@ int main(int argc, char* argv[]) {
       "%d pixels.\n\n",
       canvasWidth, canvasHeight);
 
-  BmpRepo* repo = bmpRepo_init();
-  if (repo == NULL) {
-    printf("error: failed to initialize BmpRepo\n");
+  bmpRepo = bmpRepo_init(cleanupMgr);
+  if (bmpRepo == NULL) {
+    cleanupMgr_cleanupAll(cleanupMgr);
     return 1;
   }
 
-  BmpRepoEntry* entry = bmpRepo_loadFromFile(repo, "images/city_highres.bmp");
-  if (entry == NULL) {
-    printf("error: failed to load BMP from file\n");
-    bmpRepo_free(repo);
+  rootOpNode = opTree_createRoot(cleanupMgr);
+  if (rootOpNode == NULL) {
+    cleanupMgr_cleanupAll(cleanupMgr);
     return 1;
   }
 
-  bmpEntryDisplayImage(entry);
+  // BmpRepoEntry* entry = bmpRepo_loadFromFile(repo,
+  // "images/city_highres.bmp"); if (entry == NULL) {
+  //   printf("error: failed to load BMP from file\n");
+  //   bmpRepo_free(repo);
+  //   return 1;
+  // }
 
-  bmpRepo_free(repo);
+  // bmpEntryDisplayImage(entry);
+
+  cleanupMgr_cleanupAll(cleanupMgr);
 
   return 0;
 }

@@ -3,7 +3,9 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+
 #include "bmp.h"
+#include "cleanupMgr.h"
 
 #define BMP_STRIDE 4
 
@@ -17,12 +19,11 @@ typedef struct BmpRepoEntry {
 typedef struct BmpRepo {
   int lastBmpId;
   BmpRepoEntry *entries;
+  CleanupMgr* mgr;
 } BmpRepo;
 
 // Returns NULL if failed
-BmpRepo* bmpRepo_init(void);
-
-void bmpRepo_free(BmpRepo* repo);
+BmpRepo* bmpRepo_init(CleanupMgr* mgr);
 
 // Returns NULL if failed
 BmpRepoEntry* bmpRepo_addEmptyBmp(BmpRepo* repo, size_t width, size_t height);
