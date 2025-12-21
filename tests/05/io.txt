@@ -1,0 +1,15 @@
+> 
+> Welcome to Image Structuring Program!
+> The canvas is 80 x 46 pixels.
+> 
+?  > 
+< load images/city.bmp
+> Loaded images/city.bmp with ID 0 and dimensions 80 46
+?  > 
+< place 0 1 1 n
+> Switched to layer 1
+?  > 
+< save images/05_out.bmp
+> Successfully saved image to images/05_out.bmp
+?  > 
+< quit

@@ -1,0 +1,12 @@
+> 
+> Welcome to Image Structuring Program!
+> The canvas is 10 x 10 pixels.
+> 
+?  > 
+< load images/city.bmp
+> Loaded images/city.bmp with ID 0 and dimensions 80 46
+?  > 
+< bmps
+> BMP 0 has dimensions 80 x 46
+?  > 
+< quit

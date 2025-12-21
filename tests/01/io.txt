@@ -1,0 +1,6 @@
+> 
+> Welcome to Image Structuring Program!
+> The canvas is 10 x 10 pixels.
+> 
+?  > 
+< quit

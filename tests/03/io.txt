@@ -1,0 +1,28 @@
+> 
+> Welcome to Image Structuring Program!
+> The canvas is 100 x 100 pixels.
+> 
+?  > 
+< load images/gradients.bmp
+> Loaded images/gradients.bmp with ID 0 and dimensions 64 64
+?  > 
+< help
+> 
+> Available commands:
+>  help
+>  load <PATH>
+>  crop <BMP_ID> <TOP_X> <TOP_Y> <BOTTOM_X> <BOTTOM_Y>
+>  place <BMP_ID> <CANVAS_X> <CANVAS_Y> <BLEND_MODE>
+>  undo
+>  print
+>  switch <LAYER_ID>
+>  tree
+>  bmps
+>  save <FILE_PATH>
+>  quit
+> 
+?  > 
+< crop 0 17 17 32 32
+> Cropped ID 0 to new ID 1 with dimensions 16 x 16
+?  > 
+< quit

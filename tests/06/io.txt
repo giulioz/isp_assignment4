@@ -1,0 +1,46 @@
+> 
+> Welcome to Image Structuring Program!
+> The canvas is 100 x 100 pixels.
+> 
+?  > 
+< load images/gradients.bmp
+> Loaded images/gradients.bmp with ID 0 and dimensions 64 64
+?  > 
+< place 0 1 1 n
+> Switched to layer 1
+?  > 
+< load images/coding.bmp
+> Loaded images/coding.bmp with ID 1 and dimensions 20 20
+?  > 
+< place 0 20 10 s
+> Switched to layer 2
+?  > 
+< place 1 10 10 m
+> Switched to layer 3
+?  > 
+< place 2 20 10 s
+> [ERROR] BMP ID not found!
+?  > 
+< bmps
+> BMP 0 has dimensions 64 x 64
+> BMP 1 has dimensions 20 x 20
+?  > 
+< load images/coding_no_alpha.bmp
+> Loaded images/coding_no_alpha.bmp with ID 2 and dimensions 50 50
+?  > 
+< place 2 1 1 s
+> Switched to layer 4
+?  > 
+< bmps
+> BMP 0 has dimensions 64 x 64
+> BMP 1 has dimensions 20 x 20
+> BMP 2 has dimensions 50 x 50
+?  > 
+< tree
+> Layer 0
+>    Layer 1 renders BMP 0 at 1 1
+>       Layer 2 renders BMP 0 at 20 10
+>          Layer 3 renders BMP 1 at 10 10
+>             Layer 4 renders BMP 2 at 1 1
+?  > 
+< quit

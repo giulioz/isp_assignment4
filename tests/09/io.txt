@@ -1,0 +1,105 @@
+> 
+> Welcome to Image Structuring Program!
+> The canvas is 100 x 100 pixels.
+> 
+?  > 
+< load images/coding.bmp
+> Loaded images/coding.bmp with ID 0 and dimensions 20 20
+?  > 
+< load images/coding_no_alpha.bmp
+> Loaded images/coding_no_alpha.bmp with ID 1 and dimensions 50 50
+?  > 
+< load images/city.bmp
+> Loaded images/city.bmp with ID 2 and dimensions 80 46
+?  > 
+< undo
+> [ERROR] Already at root layer!
+?  > 
+< place 0 10 10 s
+> Switched to layer 1
+?  > 
+< undo 
+> Switched to layer 0
+?  > 
+< place 0 10 10 s
+> Switched to layer 2
+?  > 
+< undo 
+> Switched to layer 0
+?  > 
+< place 0 10 10 s
+> Switched to layer 3
+?  > 
+< switch 1
+> Switched to layer 1
+?  > 
+< tree
+> Layer 0
+>    Layer 1 renders BMP 0 at 10 10
+>    Layer 2 renders BMP 0 at 10 10
+>    Layer 3 renders BMP 0 at 10 10
+?  > 
+< place 1 10 10 s
+> Switched to layer 4
+?  > 
+< undo 
+> Switched to layer 1
+?  > 
+< place 1 10 10 s
+> Switched to layer 5
+?  > 
+< tree
+> Layer 0
+>    Layer 1 renders BMP 0 at 10 10
+>       Layer 4 renders BMP 1 at 10 10
+>       Layer 5 renders BMP 1 at 10 10
+>    Layer 2 renders BMP 0 at 10 10
+>    Layer 3 renders BMP 0 at 10 10
+?  > 
+< switch 2
+> Switched to layer 2
+?  > 
+< place 1 10 10 s
+> Switched to layer 6
+?  > 
+< undo 
+> Switched to layer 2
+?  > 
+< place 1 10 10 s
+> Switched to layer 7
+?  > 
+< tree
+> Layer 0
+>    Layer 1 renders BMP 0 at 10 10
+>       Layer 4 renders BMP 1 at 10 10
+>       Layer 5 renders BMP 1 at 10 10
+>    Layer 2 renders BMP 0 at 10 10
+>       Layer 6 renders BMP 1 at 10 10
+>       Layer 7 renders BMP 1 at 10 10
+>    Layer 3 renders BMP 0 at 10 10
+?  > 
+< switch 3
+> Switched to layer 3
+?  > 
+< place 1 10 10 s
+> Switched to layer 8
+?  > 
+< undo 
+> Switched to layer 3
+?  > 
+< place 1 10 10 s
+> Switched to layer 9
+?  > 
+< tree
+> Layer 0
+>    Layer 1 renders BMP 0 at 10 10
+>       Layer 4 renders BMP 1 at 10 10
+>       Layer 5 renders BMP 1 at 10 10
+>    Layer 2 renders BMP 0 at 10 10
+>       Layer 6 renders BMP 1 at 10 10
+>       Layer 7 renders BMP 1 at 10 10
+>    Layer 3 renders BMP 0 at 10 10
+>       Layer 8 renders BMP 1 at 10 10
+>       Layer 9 renders BMP 1 at 10 10
+?  > 
+< quit

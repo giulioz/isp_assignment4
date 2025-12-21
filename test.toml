@@ -1,0 +1,102 @@
+[project_definition]
+binary_path = "./a4-csf"
+makefile_path = "."
+make_targets = [ "all"]
+project_name = "a4-csf"
+global_timeout = 20
+
+[[testcases]]
+name = "Just Quit"
+description = "(Not you, the program!)"
+type = "OrdIO"
+io_file = "tests/01/io.txt"
+io_prompt = "^\\s*>\\s*$"
+exp_exit_code = 0
+argv = ["10","10"]
+
+[[testcases]]
+name = "Load A BMP"
+description = "loads a BMP into the library"
+type = "OrdIO"
+io_file = "tests/02/io.txt"
+io_prompt = "^\\s*>\\s*$"
+exp_exit_code = 0
+argv = ["10","10"]
+
+[[testcases]]
+name = "Cropping A BMP"
+description = "where did the rest go?"
+type = "OrdIO"
+io_file = "tests/03/io.txt"
+io_prompt = "^\\s*>\\s*$"
+exp_exit_code = 0
+argv = ["100","100"]
+
+[[testcases]]
+name = "Placing a BMP on the canvas"
+description = "If it fits it sits"
+type = "OrdIO"
+io_file = "tests/04/io.txt"
+io_prompt = "^\\s*>\\s*$"
+exp_exit_code = 0
+argv = ["10","10"]
+
+[[testcases]]
+name = "Valid Save"
+description = ""
+type = "OrdIO"
+io_file = "tests/05/io.txt"
+io_prompt = "^\\s*>\\s*$"
+add_out_file = "images/05_out.bmp"
+add_exp_file = "tests/05/05_out_ref.bmp"
+add_diff_mode = "binary"
+exp_exit_code = 0
+argv = ["80","46"]
+
+[[testcases]]
+name = "Tree command works without branches"
+description = "Isn't this just a linked list?"
+type = "OrdIO"
+io_file = "tests/06/io.txt"
+io_prompt = "^\\s*>\\s*$"
+exp_exit_code = 0
+argv = ["100","100"]
+
+[[testcases]]
+name = "Color Check"
+description = "Basic Color Mixing"
+type = "OrdIO"
+io_file = "tests/07/io.txt"
+io_prompt = "^\\s*>\\s*$"
+exp_exit_code = 0
+argv = ["20","20"]
+
+[[testcases]]
+name = "Basic edgecases"
+description = ""
+type = "OrdIO"
+io_file = "tests/08/io.txt"
+io_prompt = "^\\s*>\\s*$"
+exp_exit_code = 0
+argv = ["10","10"]
+
+[[testcases]]
+name = "Is it christmas already?"
+description = "(the tree is getting bigger)(undo + switch)"
+type = "OrdIO"
+io_file = "tests/09/io.txt"
+io_prompt = "^\\s*>\\s*$"
+exp_exit_code = 0
+argv = ["100","100"]
+
+[[testcases]]
+name = "Blending modes"
+description = "modern art"
+type = "OrdIO"
+io_file = "tests/10/io.txt"
+io_prompt = "^\\s*>\\s*$"
+add_out_file = "images/10_out.bmp"
+add_exp_file = "tests/10/10_out_ref.bmp"
+add_diff_mode = "binary"
+exp_exit_code = 0
+argv = ["20","40"]
