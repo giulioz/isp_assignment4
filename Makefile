@@ -1,5 +1,5 @@
 CC            := clang
-CCFLAGS       := -Wall -Wextra -Wtype-limits -pedantic -std=c17 -g -lm
+CCFLAGS       := -Wall -Wextra -Wtype-limits -pedantic -std=c17 -g -lm -fsanitize=address -I /opt/homebrew/include/SDL2 -L /opt/homebrew/lib -lSDL2
 ASSIGNMENT    := a4-csf
 
 .DEFAULT_GOAL := default

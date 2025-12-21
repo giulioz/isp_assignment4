@@ -1,0 +1,6 @@
+.DS_Store
+a4-csf
+*.o
+*.out
+*.exe
+*.dSYM
