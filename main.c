@@ -57,14 +57,6 @@ CommandType getCommandType(const char* command) {
   return CMD_INVALID;
 }
 
-void doCommand_Help(void) {
-  printf(
-      "\nAvailable commands:\n help\n load <PATH>\n crop <BMP_ID> <TOP_X> "
-      "<TOP_Y> <BOTTOM_X> <BOTTOM_Y>\n place <BMP_ID> <CANVAS_X> <CANVAS_Y> "
-      "<BLEND_MODE>\n undo\n print\n switch <LAYER_ID>\n tree\n bmps\n save "
-      "<FILE_PATH>\n quit\n\n");
-}
-
 int doCommand_Load(CleanupMgr* cleanupMgr, BmpRepo* bmpRepo,
                    const char* command) {
   // Syntax: load <PATH>
@@ -170,6 +162,15 @@ int doCommand_Crop(BmpRepo* bmpRepo, const char* command) {
   return 0;
 }
 
+void doCommand_DisplayBmps(BmpRepo* bmpRepo) {
+  for (int i = 0; i < bmpRepo->lastBmpId; i++) {
+    BmpRepoEntry* entry = bmpRepo->entries[i];
+    assert(entry != NULL);
+    printf("BMP %d has dimensions %d x %d\n", entry->bmpId, entry->width,
+           entry->height);
+  }
+}
+
 int main(int argc, char* argv[]) {
   int canvasWidth = 0, canvasHeight = 0;
   BmpRepo* bmpRepo;
@@ -234,7 +235,14 @@ int main(int argc, char* argv[]) {
         break;
 
       case CMD_HELP:
-        doCommand_Help();
+        printf(
+            "\nAvailable commands:\n help\n load <PATH>\n crop <BMP_ID> "
+            "<TOP_X> "
+            "<TOP_Y> <BOTTOM_X> <BOTTOM_Y>\n place <BMP_ID> <CANVAS_X> "
+            "<CANVAS_Y> "
+            "<BLEND_MODE>\n undo\n print\n switch <LAYER_ID>\n tree\n bmps\n "
+            "save "
+            "<FILE_PATH>\n quit\n\n");
         break;
 
       case CMD_QUIT:
@@ -253,6 +261,10 @@ int main(int argc, char* argv[]) {
           cleanupMgr_cleanupAll(cleanupMgr);
           return 1;
         }
+        break;
+
+      case CMD_BMPS:
+        doCommand_DisplayBmps(bmpRepo);
         break;
     }
 
