@@ -1,4 +1,5 @@
 #include "cleanupMgr.h"
+#include "strings.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -10,7 +11,7 @@ CleanupMgr* cleanupMgr_init(void) {
     mgr->ptrs = NULL;
     mgr->nPtrs = 0;
   } else {
-    printf("[ERROR] Memory allocation failed!\n\n");
+    printf(ERROR_MEMALLOC);
   }
   return mgr;
 }
@@ -18,7 +19,7 @@ CleanupMgr* cleanupMgr_init(void) {
 void cleanupMgr_cleanupAll(CleanupMgr* mgr) {
   assert(mgr != NULL);
 
-  for (int i = 0; i < mgr->nPtrs; ++i) {
+  for (int i = 0; i < mgr->nPtrs; i++) {
     if (mgr->ptrs[i] != NULL) {
       free(mgr->ptrs[i]);
     }
@@ -34,7 +35,7 @@ void cleanupMgr_addPtr(CleanupMgr* mgr, void* ptr) {
 
   void** newPtrs = (void**)realloc(mgr->ptrs, (mgr->nPtrs + 1) * sizeof(void*));
   if (newPtrs == NULL) {
-    printf("[ERROR] Memory allocation failed!\n\n");
+    printf(ERROR_MEMALLOC);
     return;
   }
 
@@ -51,7 +52,7 @@ void cleanupMgr_replacePtr(CleanupMgr* mgr, void* oldPtr, void* newPtr) {
     return;
   }
 
-  for (int i = 0; i < mgr->nPtrs; ++i) {
+  for (int i = 0; i < mgr->nPtrs; i++) {
     if (mgr->ptrs[i] == oldPtr) {
       mgr->ptrs[i] = newPtr;
       return;
@@ -65,7 +66,7 @@ void cleanupMgr_replacePtr(CleanupMgr* mgr, void* oldPtr, void* newPtr) {
 void* cleanupMgr_freeSingle(CleanupMgr* mgr, void* ptr) {
   assert(mgr != NULL);
 
-  for (int i = 0; i < mgr->nPtrs; ++i) {
+  for (int i = 0; i < mgr->nPtrs; i++) {
     if (mgr->ptrs[i] == ptr) {
       free(mgr->ptrs[i]);
       mgr->ptrs[i] = NULL;

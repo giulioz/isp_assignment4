@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "strings.h"
+
 OpTreeNode* opTree_createNode(OpTreeNode* parent, int layerId,
                               CleanupMgr* mgr) {
   assert(mgr != NULL);
@@ -24,7 +26,7 @@ OpTreeNode* opTree_createNode(OpTreeNode* parent, int layerId,
     node->blendMode = BLEND_NORMAL;
     cleanupMgr_addPtr(mgr, node);
   } else {
-    printf("[ERROR] Memory allocation failed!\n\n");
+    printf(ERROR_MEMALLOC);
   }
   return node;
 }
@@ -41,7 +43,7 @@ int opTree_appendChildNode(OpTreeNode* parent, OpTreeNode* child,
   OpTreeNode** newChildren = (OpTreeNode**)realloc(
       parent->children, (parent->nChildren + 1) * sizeof(OpTreeNode*));
   if (newChildren == NULL) {
-    printf("[ERROR] Memory allocation failed!\n\n");
+    printf(ERROR_MEMALLOC);
     return -1;
   }
   cleanupMgr_replacePtr(mgr, parent->children, newChildren);

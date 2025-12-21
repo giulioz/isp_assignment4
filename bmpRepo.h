@@ -11,24 +11,32 @@
 
 typedef struct BmpRepoEntry {
   int bmpId;
-  uint8_t *pixelData;
-  size_t width;
-  size_t height;
+  uint8_t* pixelData;
+  int width;
+  int height;
+
+  // TODO: support cropping without copying data
 } BmpRepoEntry;
 
 typedef struct BmpRepo {
   int lastBmpId;
-  BmpRepoEntry *entries;
+
+  // We use a dynamic array of pointers to make reallocations easier
+  // We used a dynamic array of structs before, but that would cause problems if
+  // createEmptyBmp is called after getBmpById, as the pointer returned by
+  // getBmpById could be invalidated by a realloc in createEmptyBmp.
+  BmpRepoEntry** entries;
+
+  // We keep the CleanupMgr here to make memory management streamlined
   CleanupMgr* mgr;
 } BmpRepo;
 
-// Returns NULL if failed
+// Returns NULL if memory allocation failed
 BmpRepo* bmpRepo_init(CleanupMgr* mgr);
 
-// Returns NULL if failed
-BmpRepoEntry* bmpRepo_addEmptyBmp(BmpRepo* repo, size_t width, size_t height);
+// Returns NULL if memory allocation failed
+BmpRepoEntry* bmpRepo_createEmptyBmp(BmpRepo* repo, int width, int height);
 
-// Returns NULL if failed
-BmpRepoEntry* bmpRepo_loadFromFile(BmpRepo* repo, const char* filename);
+BmpRepoEntry* bmpRepo_getBmpById(BmpRepo* repo, int bmpId);
 
-#endif // BMP_REPO_H
+#endif  // BMP_REPO_H

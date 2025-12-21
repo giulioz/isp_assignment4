@@ -38,8 +38,8 @@ void bmpEntryDisplayImage(BmpRepoEntry* entry) {
   }
 
   uint8_t* pixels_tmp = malloc(entry->width * entry->height * BMP_STRIDE);
-  for (size_t y = 0; y < entry->height; y++) {
-    for (size_t x = 0; x < entry->width; x++) {
+  for (int y = 0; y < entry->height; y++) {
+    for (int x = 0; x < entry->width; x++) {
       size_t index = (y * entry->width + x) * BMP_STRIDE;
       size_t indexB = ((entry->height - 1 - y) * entry->width + x) * BMP_STRIDE;
       pixels_tmp[index + 0] = entry->pixelData[indexB + 3];  // R
