@@ -1,12 +1,15 @@
 #include "bmpRepo.h"
 
 #include <stdio.h>
+#include <assert.h>
 
 BmpRepo* bmpRepo_init(void) {
   BmpRepo* repo = (BmpRepo*)malloc(sizeof(BmpRepo));
   if (repo != NULL) {
     repo->lastBmpId = 0;
     repo->entries = NULL;
+  } else {
+    printf("[ERROR] Memory allocation failed!\n\n");
   }
   return repo;
 }
@@ -26,14 +29,13 @@ void bmpRepo_free(BmpRepo* repo) {
 }
 
 BmpRepoEntry* bmpRepo_addEmptyBmp(BmpRepo* repo, size_t width, size_t height) {
-  if (repo == NULL) {
-    return NULL;
-  }
+  assert(repo != NULL);
 
   int newLastBmpId = repo->lastBmpId + 1;
   BmpRepoEntry* newEntries = (BmpRepoEntry*)realloc(
       repo->entries, (newLastBmpId) * sizeof(BmpRepoEntry));
   if (newEntries == NULL) {
+    printf("[ERROR] Memory allocation failed!\n\n");
     return NULL;
   }
 
@@ -45,6 +47,7 @@ BmpRepoEntry* bmpRepo_addEmptyBmp(BmpRepo* repo, size_t width, size_t height) {
   newEntry->pixelData =
       (uint8_t*)calloc(width * height * BMP_STRIDE, sizeof(uint8_t));
   if (newEntry->pixelData == NULL) {
+    printf("[ERROR] Memory allocation failed!\n\n");
     return NULL;
   }
 
@@ -53,18 +56,18 @@ BmpRepoEntry* bmpRepo_addEmptyBmp(BmpRepo* repo, size_t width, size_t height) {
 }
 
 BmpRepoEntry* bmpRepo_loadFromFile(BmpRepo* repo, const char* filename) {
-  if (repo == NULL) {
-    return NULL;
-  }
+  assert(repo != NULL);
 
   BmpHeader header;
 
   FILE* file = fopen(filename, "rb");
   if (file == NULL) {
+    printf("[ERROR] Cannot open file!\n");
     return NULL;
   }
 
   if (fread(&header, sizeof(BmpHeader), 1, file) != 1) {
+    printf("[ERROR] Invalid file!\n");
     fclose(file);
     return NULL;
   }
@@ -73,6 +76,7 @@ BmpRepoEntry* bmpRepo_loadFromFile(BmpRepo* repo, const char* filename) {
       (header.b_ == 'B' && header.m_ == 'M' &&
        header.number_of_bits_per_pixel_ == 32 && header.compression_ == 3);
   if (!isValidBmp) {
+    printf("[ERROR] Invalid file!\n");
     fclose(file);
     return NULL;
   }
