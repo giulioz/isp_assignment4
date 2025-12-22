@@ -49,6 +49,8 @@ CommandType getCommandType(const char* command) {
 
       // TODO: properly match only full words
       // right now it's possible to match "helpme" as "help"
+
+      // This is very broken, fix!
     }
 
     if (match) {
@@ -97,7 +99,9 @@ int doCommand_Load(MemoryMgr* memoryMgr, BmpRepo* bmpRepo,
       "Loaded %s with ID %d and dimensions %d "
       "%d\n",
       path, entry->bmpId, entry->width, entry->height);
+
   fclose(file);
+  memoryMgr_free(memoryMgr, path);
   return 0;
 }
 
@@ -162,17 +166,8 @@ int doCommand_Crop(BmpRepo* bmpRepo, const char* command) {
   return 0;
 }
 
-void doCommand_DisplayBmps(BmpRepo* bmpRepo) {
-  for (int i = 0; i < bmpRepo->lastBmpId; i++) {
-    BmpRepoEntry* entry = bmpRepo->entries[i];
-    assert(entry != NULL);
-    printf("BMP %d has dimensions %d x %d\n", entry->bmpId, entry->width,
-           entry->height);
-  }
-}
-
-int doCommand_Place(MemoryMgr* memoryMgr, BmpRepo* bmpRepo, OpTree* opTree,
-                    const char* command, int canvasWidth, int canvasHeight) {
+int doCommand_Place(BmpRepo* bmpRepo, OpTree* opTree, const char* command,
+                    int canvasWidth, int canvasHeight) {
   // Syntax: place <BMP_ID> <CANVAS_X> <CANVAS_Y> <BLEND_MODE>
 
   int bmpId = -1;
@@ -215,9 +210,81 @@ int doCommand_Place(MemoryMgr* memoryMgr, BmpRepo* bmpRepo, OpTree* opTree,
   // Create new layer
   OpTreeNode* newOpNode = opTree_appendNewToCurrent(
       opTree, bmpId, bmpEntry, canvasX, canvasY, blendMode);
+  if (newOpNode == NULL) {
+    // memory allocation failed
+    return -1;
+  }
 
   printf("Switched to layer %d\n", newOpNode->layerId);
 
+  return 0;
+}
+
+void doCommand_Undo(OpTree* opTree) {
+  if (!opTree_undo(opTree)) {
+    printf("Switched to layer %d\n", opTree->current->layerId);
+  } else {
+    printf(ERROR_ALREADY_ROOT);
+  }
+}
+
+void doCommand_Print(BmpRepo* bmpRepo, OpTree* opTree, int canvasWidth,
+                     int canvasHeight) {
+  // TODO
+  printf("\033[38;2;250;20;20m███\033[0m");
+}
+
+void doCommand_Switch(OpTree* opTree, const char* command) {
+  // Syntax: switch <LAYER_ID>
+
+  int layerId = -1;
+
+  // Parse parameters from command
+  if (sscanf(command, "switch %d", &layerId) != 1) {
+    printf(ERROR_ARGUMENTS);
+    return;
+  }
+
+  if (!opTree_switch(opTree, layerId)) {
+    printf("Switched to layer %d\n", layerId);
+  } else {
+    printf(ERROR_NO_LAYER);
+  }
+}
+
+void doCommand_DisplayBmps(BmpRepo* bmpRepo) {
+  for (int i = 0; i < bmpRepo->lastBmpId; i++) {
+    BmpRepoEntry* entry = bmpRepo->entries[i];
+    assert(entry != NULL);
+    printf("BMP %d has dimensions %d x %d\n", entry->bmpId, entry->width,
+           entry->height);
+  }
+}
+
+int doCommand_Save(OpTree* opTree, BmpRepo* bmpRepo, const char* command,
+                   int canvasWidth, int canvasHeight) {
+  // Syntax: save <FILE_PATH>
+
+  char* path = getNWord(command, 1, opTree->mgr);
+  if (!path) {
+    printf(ERROR_ARGUMENTS);
+    return 0;
+  }
+
+  BmpHeader header;
+  // FILE* file = bmpWriteHeader(path, canvasWidth, canvasHeight);
+  FILE* file = bmpWriteHeader(path, &header, 32, 32);
+  if (file == NULL) {
+    return 0;
+  }
+
+  for (size_t i = 0; i < 32 * 32; i++) {
+    fwrite("\xff\x10\x20\xff", 4, 1, file);
+  }
+
+  fclose(file);
+  printf("Successfully saved image to %s\n", path);
+  memoryMgr_free(opTree->mgr, path);
   return 0;
 }
 
@@ -314,15 +381,39 @@ int main(int argc, char* argv[]) {
         break;
 
       case CMD_PLACE:
-        if (doCommand_Place(memoryMgr, bmpRepo, opTree, command, canvasWidth,
+        if (doCommand_Place(bmpRepo, opTree, command, canvasWidth,
                             canvasHeight) == -1) {
           memoryMgr_cleanupAll(memoryMgr);
           return 1;
         }
         break;
 
+      case CMD_UNDO:
+        doCommand_Undo(opTree);
+        break;
+
+      case CMD_PRINT:
+        doCommand_Print(bmpRepo, opTree, canvasWidth, canvasHeight);
+        break;
+
+      case CMD_SWITCH:
+        doCommand_Switch(opTree, command);
+        break;
+
       case CMD_BMPS:
         doCommand_DisplayBmps(bmpRepo);
+        break;
+
+      case CMD_TREE:
+        opTree_printRecursive(opTree->root, 0);
+        break;
+
+      case CMD_SAVE:
+        if (doCommand_Save(opTree, bmpRepo, command, canvasWidth,
+                           canvasHeight) == -1) {
+          memoryMgr_cleanupAll(memoryMgr);
+          return 1;
+        }
         break;
     }
 

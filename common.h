@@ -12,4 +12,6 @@ char* getNWord(const char* str, int n, MemoryMgr* mgr);
 
 FILE* bmpReadHeader(const char* filename, BmpHeader* header);
 
+FILE* bmpWriteHeader(const char* filename, BmpHeader* header, int width, int height);
+
 #endif  // COMMON_H

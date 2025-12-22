@@ -107,3 +107,21 @@ FILE* bmpReadHeader(const char* filename, BmpHeader* header) {
 
   return file;
 }
+
+FILE* bmpWriteHeader(const char* filename, BmpHeader* header, int width, int height) {
+  FILE* file = fopen(filename, "wb");
+  if (file == NULL) {
+    printf(ERROR_FILEPATH);
+    return NULL;
+  }
+
+  fillBmpHeaderDefaultValues(header, width, height);
+
+  if (fwrite(header, sizeof(BmpHeader), 1, file) != 1) {
+    printf("[ERROR] Failed to write BMP header!\n");
+    fclose(file);
+    return NULL;
+  }
+
+  return file;
+}

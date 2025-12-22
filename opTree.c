@@ -97,5 +97,51 @@ OpTreeNode* opTree_appendNewToCurrent(OpTree* tree, int bmpId,
   return child;
 }
 
+int opTree_undo(OpTree* tree) {
+  assert(tree != NULL);
+  if (tree->current->parent != NULL) {
+    tree->current = tree->current->parent;
+    return 0;
+  } else {
+    return -1;
+  }
+}
+
+int opTree_switch(OpTree* tree, int layerId) {
+  assert(tree != NULL);
+
+  // Search for layer
+  OpTreeNode* node = tree->current;
+  while (node != NULL && node->layerId != layerId) {
+    node = node->parent;
+  }
+
+  if (node != NULL) {
+    tree->current = node;
+    return 0;
+  } else {
+    return -1;
+  }
+}
+
+void opTree_printRecursive(OpTreeNode* node, int depth) {
+  for (int i = 0; i < depth; i++) {
+    printf("   ");
+  }
+
+  if (node->parent == NULL) {
+    // root node
+    printf("Layer %d\n", node->layerId);
+    return;
+  }
+
+  printf("Layer %d renders BMP %d at %d %d\n", node->layerId, node->bmpId,
+         node->destX, node->destY);
+
+  for (int i = 0; i < node->nChildren; i++) {
+    opTree_printRecursive(node->children[i], depth + 1);
+  }
+}
+
 BmpRepoEntry* opTree_renderBranch(OpTree* tree, OpTreeNode* endpoint,
                                   BmpRepo* bmpRepo) {}

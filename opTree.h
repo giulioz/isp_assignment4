@@ -47,6 +47,14 @@ OpTreeNode* opTree_appendNewToCurrent(OpTree* tree, int bmpId,
                                       BmpRepoEntry* associatedBmp, int destX,
                                       int destY, BlendMode blendMode);
 
+// Returns 0 on success, -1 if already at root
+int opTree_undo(OpTree* tree);
+
+// Returns 0 on success, -1 if not found
+int opTree_switch(OpTree* tree, int layerId);
+
+void opTree_printRecursive(OpTreeNode* node, int depth);
+
 BmpRepoEntry* opTree_renderBranch(OpTree* tree, OpTreeNode* endpoint,
                                   BmpRepo* bmpRepo);
 
