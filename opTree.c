@@ -178,16 +178,16 @@ void opTree_renderRecursive(OpTreeNode* node, uint8_t* buffer, BmpRepo* bmpRepo,
       switch (node->blendMode) {
         case BLEND_NORMAL:
           destPixel[0] =
-              (uint8_t)(srcPixel[0] * srcAlpha + destPixel[0] * srcAlphaInv);
+              (uint8_t)((double)srcPixel[0] * srcAlpha + (double)destPixel[0] * srcAlphaInv);
           destPixel[1] =
-              (uint8_t)(srcPixel[1] * srcAlpha + destPixel[1] * srcAlphaInv);
+              (uint8_t)((double)srcPixel[1] * srcAlpha + (double)destPixel[1] * srcAlphaInv);
           destPixel[2] =
-              (uint8_t)(srcPixel[2] * srcAlpha + destPixel[2] * srcAlphaInv);
+              (uint8_t)((double)srcPixel[2] * srcAlpha + (double)destPixel[2] * srcAlphaInv);
           break;
         case BLEND_MUL:
-          destPixel[0] = (destPixel[0] * srcPixel[0]) / 255;
-          destPixel[1] = (destPixel[1] * srcPixel[1]) / 255;
-          destPixel[2] = (destPixel[2] * srcPixel[2]) / 255;
+          destPixel[0] = (uint8_t)(((double)destPixel[0] * (double)srcPixel[0]) / 255.0);
+          destPixel[1] = (uint8_t)(((double)destPixel[1] * (double)srcPixel[1]) / 255.0);
+          destPixel[2] = (uint8_t)(((double)destPixel[2] * (double)srcPixel[2]) / 255.0);
           break;
         case BLEND_SUB:
           destPixel[0] =

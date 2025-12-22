@@ -8,7 +8,6 @@
 #include "common.h"
 #include "memoryMgr.h"
 #include "opTree.h"
-#include "sdlViewer.h"
 #include "strings.h"
 
 typedef enum CommandType {
@@ -89,9 +88,7 @@ int doCommand_Load(MemoryMgr* memoryMgr, BmpRepo* bmpRepo,
 
   // Read pixel data
   fseek(file, header.offset_pixel_array_, SEEK_SET);
-  if (fread(entry->pixelData, header.raw_bitmap_data_size_, 1, file) != 1) {
-    // TODO: why does it sometimes fail here even when the file is valid?
-
+  if (fread(entry->pixelData, 1, header.raw_bitmap_data_size_, file) != header.raw_bitmap_data_size_) {
     printf("[ERROR] Failed to read pixel data!\n");
     fclose(file);
     return 0;
