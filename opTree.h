@@ -55,7 +55,10 @@ int opTree_switch(OpTree* tree, int layerId);
 
 void opTree_printRecursive(OpTreeNode* node, int depth);
 
-BmpRepoEntry* opTree_renderBranch(OpTree* tree, OpTreeNode* endpoint,
-                                  BmpRepo* bmpRepo);
+void opTree_renderRecursive(OpTreeNode* node, uint8_t* buffer, BmpRepo* bmpRepo,
+                            int canvasWidth, int canvasHeight);
+
+uint8_t* opTree_renderCurrent(OpTree* tree, BmpRepo* bmpRepo, int canvasWidth,
+                              int canvasHeight);
 
 #endif  // OPTREE_H

@@ -38,7 +38,6 @@ BmpRepoEntry* bmpRepo_createEmptyBmp(BmpRepo* repo, int width, int height) {
   newEntry->pixelData = (uint8_t*)memoryMgr_malloc(
       repo->mgr, width * height * BMP_STRIDE * sizeof(uint8_t));
   if (newEntry->pixelData == NULL) {
-    printf(ERROR_MEMALLOC);
     return NULL;
   }
 

@@ -3,8 +3,12 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "strings.h"
+
+#define max(a, b) ((a) > (b) ? (a) : (b))
+#define min(a, b) ((a) < (b) ? (a) : (b))
 
 OpTree* opTree_init(MemoryMgr* mgr) {
   assert(mgr != NULL);
@@ -19,8 +23,6 @@ OpTree* opTree_init(MemoryMgr* mgr) {
     }
     tree->current = tree->root;
     tree->lastLayerId = 0;
-  } else {
-    printf(ERROR_MEMALLOC);
   }
   return tree;
 }
@@ -40,8 +42,6 @@ OpTreeNode* opTree_createNode(OpTree* tree, OpTreeNode* parent, int layerId) {
     node->destX = 0;
     node->destY = 0;
     node->blendMode = BLEND_NORMAL;
-  } else {
-    printf(ERROR_MEMALLOC);
   }
   return node;
 }
@@ -56,7 +56,6 @@ int opTree_appendChildNode(OpTree* tree, OpTreeNode* parent,
       tree->mgr, parent->children,
       (parent->nChildren + 1) * sizeof(OpTreeNode*));
   if (newChildren == NULL) {
-    printf(ERROR_MEMALLOC);
     return -1;
   }
 
@@ -143,5 +142,79 @@ void opTree_printRecursive(OpTreeNode* node, int depth) {
   }
 }
 
-BmpRepoEntry* opTree_renderBranch(OpTree* tree, OpTreeNode* endpoint,
-                                  BmpRepo* bmpRepo) {}
+void opTree_renderRecursive(OpTreeNode* node, uint8_t* buffer, BmpRepo* bmpRepo,
+                            int canvasWidth, int canvasHeight) {
+  if (node->parent == NULL) {
+    // Root node: fill with white
+    memset(buffer, 255, BMP_STRIDE * canvasWidth * canvasHeight);
+    return;
+  }
+
+  // Render parent first
+  opTree_renderRecursive(node->parent, buffer, bmpRepo, canvasWidth,
+                         canvasHeight);
+
+  // Render
+  for (int y = 0; y < node->associatedBmp->height; y++) {
+    for (int x = 0; x < node->associatedBmp->width; x++) {
+      int canvasX = node->destX + x;
+      int canvasY = node->destY + y;
+
+      if (canvasX < 0 || canvasY < 0 || canvasX >= canvasWidth ||
+          canvasY >= canvasHeight) {
+        // should never happen due to checks but let's test anyway
+        continue;
+      }
+
+      int canvasIdx = (canvasY * canvasWidth + canvasX) * BMP_STRIDE;
+      int bmpIdx = (y * node->associatedBmp->width + x) * BMP_STRIDE;
+
+      uint8_t* destPixel = &buffer[canvasIdx];
+      uint8_t* srcPixel = &node->associatedBmp->pixelData[bmpIdx];
+
+      double srcAlpha = (double)srcPixel[3] / 255.0;
+      double srcAlphaInv = 1.0 - srcAlpha;
+
+      switch (node->blendMode) {
+        case BLEND_NORMAL:
+          destPixel[0] =
+              (uint8_t)(srcPixel[0] * srcAlpha + destPixel[0] * srcAlphaInv);
+          destPixel[1] =
+              (uint8_t)(srcPixel[1] * srcAlpha + destPixel[1] * srcAlphaInv);
+          destPixel[2] =
+              (uint8_t)(srcPixel[2] * srcAlpha + destPixel[2] * srcAlphaInv);
+          break;
+        case BLEND_MUL:
+          destPixel[0] = (destPixel[0] * srcPixel[0]) / 255;
+          destPixel[1] = (destPixel[1] * srcPixel[1]) / 255;
+          destPixel[2] = (destPixel[2] * srcPixel[2]) / 255;
+          break;
+        case BLEND_SUB:
+          destPixel[0] =
+              max(destPixel[0], srcPixel[0]) - min(destPixel[0], srcPixel[0]);
+          destPixel[1] =
+              max(destPixel[1], srcPixel[1]) - min(destPixel[1], srcPixel[1]);
+          destPixel[2] =
+              max(destPixel[2], srcPixel[2]) - min(destPixel[2], srcPixel[2]);
+          break;
+      }
+    }
+  }
+}
+
+uint8_t* opTree_renderCurrent(OpTree* tree, BmpRepo* bmpRepo, int canvasWidth,
+                              int canvasHeight) {
+  assert(tree != NULL);
+  assert(bmpRepo != NULL);
+
+  uint8_t* buffer = (uint8_t*)memoryMgr_malloc(
+      tree->mgr, BMP_STRIDE * canvasWidth * canvasHeight);
+  if (buffer == NULL) {
+    return NULL;
+  }
+
+  opTree_renderRecursive(tree->current, buffer, bmpRepo, canvasWidth,
+                         canvasHeight);
+
+  return buffer;
+}

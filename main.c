@@ -90,6 +90,8 @@ int doCommand_Load(MemoryMgr* memoryMgr, BmpRepo* bmpRepo,
   // Read pixel data
   fseek(file, header.offset_pixel_array_, SEEK_SET);
   if (fread(entry->pixelData, header.raw_bitmap_data_size_, 1, file) != 1) {
+    // TODO: why does it sometimes fail here even when the file is valid?
+
     printf("[ERROR] Failed to read pixel data!\n");
     fclose(file);
     return 0;
@@ -228,10 +230,41 @@ void doCommand_Undo(OpTree* opTree) {
   }
 }
 
-void doCommand_Print(BmpRepo* bmpRepo, OpTree* opTree, int canvasWidth,
-                     int canvasHeight) {
-  // TODO
-  printf("\033[38;2;250;20;20m███\033[0m");
+int doCommand_Print(BmpRepo* bmpRepo, OpTree* opTree, int canvasWidth,
+                    int canvasHeight) {
+  uint8_t* buffer =
+      opTree_renderCurrent(opTree, bmpRepo, canvasWidth, canvasHeight);
+  if (buffer == NULL) {
+    return -1;
+  }
+
+  // Cols header
+  printf("   ");
+  for (int x = 0; x < canvasWidth; x++) {
+    printf("%02d ", x);
+  }
+  printf("\n");
+
+  // Body
+  for (int y = canvasHeight - 1; y >= 0; y--) {
+    printf("%02d|", y);
+    for (int x = 0; x < canvasWidth; x++) {
+      uint8_t* pixel = &buffer[(y * canvasWidth + x) * BMP_STRIDE];
+      printf("\033[38;2;%d;%d;%dm███\033[0m", pixel[2], pixel[1], pixel[0]);
+    }
+    printf("|\n");
+  }
+
+  // Footer
+  printf("  ");
+  for (int x = 0; x < canvasWidth * 3 + 2; x++) {
+    printf("-");
+  }
+  printf("\n");
+
+  memoryMgr_free(opTree->mgr, buffer);
+
+  return 0;
 }
 
 void doCommand_Switch(OpTree* opTree, const char* command) {
@@ -271,20 +304,24 @@ int doCommand_Save(OpTree* opTree, BmpRepo* bmpRepo, const char* command,
     return 0;
   }
 
+  uint8_t* buffer =
+      opTree_renderCurrent(opTree, bmpRepo, canvasWidth, canvasHeight);
+  if (buffer == NULL) {
+    return -1;
+  }
+
   BmpHeader header;
-  // FILE* file = bmpWriteHeader(path, canvasWidth, canvasHeight);
-  FILE* file = bmpWriteHeader(path, &header, 32, 32);
+  FILE* file = bmpWriteHeader(path, &header, canvasWidth, canvasHeight);
   if (file == NULL) {
     return 0;
   }
 
-  for (size_t i = 0; i < 32 * 32; i++) {
-    fwrite("\xff\x10\x20\xff", 4, 1, file);
-  }
+  fwrite(buffer, BMP_STRIDE * canvasWidth * canvasHeight, 1, file);
 
   fclose(file);
   printf("Successfully saved image to %s\n", path);
   memoryMgr_free(opTree->mgr, path);
+  memoryMgr_free(opTree->mgr, buffer);
   return 0;
 }
 
@@ -393,7 +430,10 @@ int main(int argc, char* argv[]) {
         break;
 
       case CMD_PRINT:
-        doCommand_Print(bmpRepo, opTree, canvasWidth, canvasHeight);
+        if (doCommand_Print(bmpRepo, opTree, canvasWidth, canvasHeight) == -1) {
+          memoryMgr_cleanupAll(memoryMgr);
+          return 1;
+        }
         break;
 
       case CMD_SWITCH:
