@@ -5,14 +5,15 @@
 #include "memoryMgr.h"
 
 typedef enum BlendMode {
-  BLEND_NORMAL,
-  BLEND_MUL,
-  BLEND_SUB,
+  BLEND_NORMAL = 'n',
+  BLEND_MUL = 'm',
+  BLEND_SUB = 's',
 } BlendMode;
 
 typedef struct OpTreeNode {
   int layerId;
 
+  int bmpId;
   BmpRepoEntry* associatedBmp;
   int destX, destY;
   BlendMode blendMode;
@@ -41,9 +42,10 @@ OpTreeNode* opTree_createNode(OpTree* tree, OpTreeNode* parent, int layerId);
 // Returns -1 if failed
 int opTree_appendChildNode(OpTree* tree, OpTreeNode* parent, OpTreeNode* child);
 
-// Returns -1 if failed
-int opTree_appendNewToCurrent(OpTree* tree, BmpRepoEntry* associatedBmp,
-                              int destX, int destY, BlendMode blendMode);
+// Returns NULL if failed
+OpTreeNode* opTree_appendNewToCurrent(OpTree* tree, int bmpId,
+                                      BmpRepoEntry* associatedBmp, int destX,
+                                      int destY, BlendMode blendMode);
 
 BmpRepoEntry* opTree_renderBranch(OpTree* tree, OpTreeNode* endpoint,
                                   BmpRepo* bmpRepo);

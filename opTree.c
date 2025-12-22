@@ -35,6 +35,7 @@ OpTreeNode* opTree_createNode(OpTree* tree, OpTreeNode* parent, int layerId) {
     node->children = NULL;
     node->nChildren = 0;
     node->layerId = layerId;
+    node->bmpId = -1;
     node->associatedBmp = NULL;
     node->destX = 0;
     node->destY = 0;
@@ -69,16 +70,18 @@ int opTree_appendChildNode(OpTree* tree, OpTreeNode* parent,
   return 0;
 }
 
-int opTree_appendNewToCurrent(OpTree* tree, BmpRepoEntry* associatedBmp,
-                              int destX, int destY, BlendMode blendMode) {
+OpTreeNode* opTree_appendNewToCurrent(OpTree* tree, int bmpId,
+                                      BmpRepoEntry* associatedBmp, int destX,
+                                      int destY, BlendMode blendMode) {
   assert(tree != NULL);
 
   // Create and fill new node
   OpTreeNode* child =
       opTree_createNode(tree, tree->current, tree->lastLayerId + 1);
   if (child == NULL) {
-    return -1;
+    return NULL;
   }
+  child->bmpId = bmpId;
   child->associatedBmp = associatedBmp;
   child->destX = destX;
   child->destY = destY;
@@ -86,10 +89,12 @@ int opTree_appendNewToCurrent(OpTree* tree, BmpRepoEntry* associatedBmp,
   tree->lastLayerId++;
 
   int result = opTree_appendChildNode(tree, tree->current, child);
-  if (result == 0) {
-    tree->current = child;
+  if (result != 0) {
+    return NULL;
   }
-  return result;
+
+  tree->current = child;
+  return child;
 }
 
 BmpRepoEntry* opTree_renderBranch(OpTree* tree, OpTreeNode* endpoint,

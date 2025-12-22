@@ -1,12 +1,12 @@
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #include "bmp.h"
 #include "bmpRepo.h"
-#include "memoryMgr.h"
 #include "common.h"
+#include "memoryMgr.h"
 #include "opTree.h"
 #include "sdlViewer.h"
 #include "strings.h"
@@ -155,8 +155,6 @@ int doCommand_Crop(BmpRepo* bmpRepo, const char* command) {
     }
   }
 
-  bmpEntryDisplayImage(croppedBmp);
-
   printf(
       "Cropped ID %d to new ID %d with dimensions %d "
       "x %d\n",
@@ -179,14 +177,16 @@ int doCommand_Place(MemoryMgr* memoryMgr, BmpRepo* bmpRepo, OpTree* opTree,
 
   int bmpId = -1;
   int canvasX = -1, canvasY = -1;
-  char blendMode = 0;
+  char blendModeChar = 0;
+  BlendMode blendMode = 0;
 
   // Parse parameters from command
   if (sscanf(command, "place %d %d %d %c", &bmpId, &canvasX, &canvasY,
-             &blendMode) != 4) {
+             &blendModeChar) != 4) {
     printf(ERROR_ARGUMENTS);
     return 0;
   }
+  blendMode = (BlendMode)blendModeChar;
 
   // Get BMP entry from repo
   BmpRepoEntry* bmpEntry = bmpRepo_getBmpById(bmpRepo, bmpId);
@@ -196,7 +196,8 @@ int doCommand_Place(MemoryMgr* memoryMgr, BmpRepo* bmpRepo, OpTree* opTree,
   }
 
   // Sanity checks
-  if (blendMode != 'n' && blendMode != 'm' && blendMode != 's') {
+  if (blendMode != BLEND_NORMAL && blendMode != BLEND_MUL &&
+      blendMode != BLEND_SUB) {
     printf(ERROR_INV_BLENDMODE);
     return 0;
   }
@@ -212,14 +213,10 @@ int doCommand_Place(MemoryMgr* memoryMgr, BmpRepo* bmpRepo, OpTree* opTree,
   }
 
   // Create new layer
-  // OpTreeNode* newOpNode =
-  //     opTree_createNode(*currentOpNode, *lastLayerId + 1, cleanupMgr);
-  // if (*currentOpNode == NULL) {
-  //   // memory allocation failed
-  //   return -1;
-  // }
+  OpTreeNode* newOpNode = opTree_appendNewToCurrent(
+      opTree, bmpId, bmpEntry, canvasX, canvasY, blendMode);
 
-  printf("Switched to layer %d\n", 0);
+  printf("Switched to layer %d\n", newOpNode->layerId);
 
   return 0;
 }
