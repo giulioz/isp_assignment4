@@ -106,15 +106,25 @@ int opTree_undo(OpTree* tree) {
   }
 }
 
+OpTreeNode* opTree_findId(OpTreeNode* tree, int layerId) {
+  if (tree->layerId == layerId) {
+    return tree;
+  }
+
+  for (int i = 0; i < tree->nChildren; i++) {
+    OpTreeNode* result = opTree_findId(tree->children[i], layerId);
+    if (result != NULL) {
+      return result;
+    }
+  }
+
+  return NULL;
+}
+
 int opTree_switch(OpTree* tree, int layerId) {
   assert(tree != NULL);
 
-  // Search for layer
-  OpTreeNode* node = tree->current;
-  while (node != NULL && node->layerId != layerId) {
-    node = node->parent;
-  }
-
+  OpTreeNode* node = opTree_findId(tree->root, layerId);
   if (node != NULL) {
     tree->current = node;
     return 0;
@@ -131,11 +141,10 @@ void opTree_printRecursive(OpTreeNode* node, int depth) {
   if (node->parent == NULL) {
     // root node
     printf("Layer %d\n", node->layerId);
-    return;
+  } else {
+    printf("Layer %d renders BMP %d at %d %d\n", node->layerId, node->bmpId,
+           node->destX, node->destY);
   }
-
-  printf("Layer %d renders BMP %d at %d %d\n", node->layerId, node->bmpId,
-         node->destX, node->destY);
 
   for (int i = 0; i < node->nChildren; i++) {
     opTree_printRecursive(node->children[i], depth + 1);
@@ -177,17 +186,20 @@ void opTree_renderRecursive(OpTreeNode* node, uint8_t* buffer, BmpRepo* bmpRepo,
 
       switch (node->blendMode) {
         case BLEND_NORMAL:
-          destPixel[0] =
-              (uint8_t)((double)srcPixel[0] * srcAlpha + (double)destPixel[0] * srcAlphaInv);
-          destPixel[1] =
-              (uint8_t)((double)srcPixel[1] * srcAlpha + (double)destPixel[1] * srcAlphaInv);
-          destPixel[2] =
-              (uint8_t)((double)srcPixel[2] * srcAlpha + (double)destPixel[2] * srcAlphaInv);
+          destPixel[0] = (uint8_t)((double)srcPixel[0] * srcAlpha +
+                                   (double)destPixel[0] * srcAlphaInv);
+          destPixel[1] = (uint8_t)((double)srcPixel[1] * srcAlpha +
+                                   (double)destPixel[1] * srcAlphaInv);
+          destPixel[2] = (uint8_t)((double)srcPixel[2] * srcAlpha +
+                                   (double)destPixel[2] * srcAlphaInv);
           break;
         case BLEND_MUL:
-          destPixel[0] = (uint8_t)(((double)destPixel[0] * (double)srcPixel[0]) / 255.0);
-          destPixel[1] = (uint8_t)(((double)destPixel[1] * (double)srcPixel[1]) / 255.0);
-          destPixel[2] = (uint8_t)(((double)destPixel[2] * (double)srcPixel[2]) / 255.0);
+          destPixel[0] =
+              (uint8_t)(((double)destPixel[0] * (double)srcPixel[0]) / 255.0);
+          destPixel[1] =
+              (uint8_t)(((double)destPixel[1] * (double)srcPixel[1]) / 255.0);
+          destPixel[2] =
+              (uint8_t)(((double)destPixel[2] * (double)srcPixel[2]) / 255.0);
           break;
         case BLEND_SUB:
           destPixel[0] =

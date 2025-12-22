@@ -50,6 +50,8 @@ OpTreeNode* opTree_appendNewToCurrent(OpTree* tree, int bmpId,
 // Returns 0 on success, -1 if already at root
 int opTree_undo(OpTree* tree);
 
+OpTreeNode* opTree_findId(OpTreeNode* tree, int layerId);
+
 // Returns 0 on success, -1 if not found
 int opTree_switch(OpTree* tree, int layerId);
 
