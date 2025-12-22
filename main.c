@@ -87,12 +87,17 @@ int doCommand_Load(MemoryMgr* memoryMgr, BmpRepo* bmpRepo,
   }
 
   // Read pixel data
+  // We go line by line to flip the image vertically (since BMPs are stored
+  // upside-down)
   fseek(file, header.offset_pixel_array_, SEEK_SET);
-  size_t bytesToRead = header.width_ * header.height_ * BMP_STRIDE;
-  if (fread(entry->pixelData, 1, bytesToRead, file) != bytesToRead) {
-    printf("[ERROR] Failed to read pixel data!\n");
-    fclose(file);
-    return 0;
+  for (int y = header.height_ - 1; y >= 0; y--) {
+    size_t bytesToRead = header.width_ * BMP_STRIDE;
+    if (fread(&entry->pixelData[y * header.width_ * BMP_STRIDE], 1, bytesToRead,
+              file) != bytesToRead) {
+      printf("[ERROR] Failed to read pixel data!\n");
+      fclose(file);
+      return 0;
+    }
   }
 
   printf(
@@ -117,6 +122,10 @@ int doCommand_Crop(BmpRepo* bmpRepo, const char* command) {
     printf(ERROR_ARGUMENTS);
     return 0;
   }
+
+  // Apparently coordinates are 1-based (??)
+  topX -= 1;
+  topY -= 1;
 
   // Get original BMP from repo
   BmpRepoEntry* originalBmp = bmpRepo_getBmpById(bmpRepo, bmpId);
@@ -183,6 +192,10 @@ int doCommand_Place(BmpRepo* bmpRepo, OpTree* opTree, const char* command,
   }
   blendMode = (BlendMode)blendModeChar;
 
+  // Apparently coordinates are 1-based (??)
+  canvasX -= 1;
+  canvasY -= 1;
+
   // Get BMP entry from repo
   BmpRepoEntry* bmpEntry = bmpRepo_getBmpById(bmpRepo, bmpId);
   if (bmpEntry == NULL) {
@@ -244,8 +257,8 @@ int doCommand_Print(BmpRepo* bmpRepo, OpTree* opTree, int canvasWidth,
   printf("\n");
 
   // Body
-  for (int y = canvasHeight - 1; y >= 0; y--) {
-    printf("%02d|", canvasHeight - y);
+  for (int y = 0; y < canvasHeight; y++) {
+    printf("%02d|", y + 1);
     for (int x = 0; x < canvasWidth; x++) {
       uint8_t* pixel = &buffer[(y * canvasWidth + x) * BMP_STRIDE];
       printf("\033[38;2;%d;%d;%dm███\033[0m", pixel[2], pixel[1], pixel[0]);
