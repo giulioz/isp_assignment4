@@ -5,18 +5,14 @@
 
 #include "strings.h"
 
-BmpRepo* bmpRepo_init(CleanupMgr* mgr) {
+BmpRepo* bmpRepo_init(MemoryMgr* mgr) {
   assert(mgr != NULL);
 
-  BmpRepo* repo = (BmpRepo*)malloc(sizeof(BmpRepo));
+  BmpRepo* repo = (BmpRepo*)memoryMgr_malloc(mgr, sizeof(BmpRepo));
   if (repo != NULL) {
     repo->lastBmpId = 0;
-    repo->entries = malloc(0);  // Start with zero entries
+    repo->entries = memoryMgr_malloc(mgr, 0);  // Start with zero entries
     repo->mgr = mgr;
-    cleanupMgr_addPtr(mgr, repo);
-    cleanupMgr_addPtr(mgr, repo->entries);
-  } else {
-    printf(ERROR_MEMALLOC);
   }
   return repo;
 }
@@ -26,28 +22,25 @@ BmpRepoEntry* bmpRepo_createEmptyBmp(BmpRepo* repo, int width, int height) {
 
   // Add space for a new entry
   int newLastBmpId = repo->lastBmpId + 1;
-  BmpRepoEntry** newEntries = (BmpRepoEntry**)realloc(
-      repo->entries, newLastBmpId * sizeof(BmpRepoEntry*));
+  BmpRepoEntry** newEntries = (BmpRepoEntry**)memoryMgr_realloc(
+      repo->mgr, repo->entries, newLastBmpId * sizeof(BmpRepoEntry*));
   if (newEntries == NULL) {
-    printf(ERROR_MEMALLOC);
     return NULL;
   }
-  cleanupMgr_replacePtr(repo->mgr, repo->entries, newEntries);
   repo->entries = newEntries;
 
   // Array of pointers, see comment in BmpRepo struct
-  BmpRepoEntry* newEntry = (BmpRepoEntry*)malloc(sizeof(BmpRepoEntry));
+  BmpRepoEntry* newEntry =
+      (BmpRepoEntry*)memoryMgr_malloc(repo->mgr, sizeof(BmpRepoEntry));
   newEntry->bmpId = repo->lastBmpId;
   newEntry->width = width;
   newEntry->height = height;
-  newEntry->pixelData =
-      (uint8_t*)calloc(width * height * BMP_STRIDE, sizeof(uint8_t));
+  newEntry->pixelData = (uint8_t*)memoryMgr_malloc(
+      repo->mgr, width * height * BMP_STRIDE * sizeof(uint8_t));
   if (newEntry->pixelData == NULL) {
     printf(ERROR_MEMALLOC);
     return NULL;
   }
-  cleanupMgr_addPtr(repo->mgr, newEntry->pixelData);
-  cleanupMgr_addPtr(repo->mgr, newEntry);
 
   repo->entries[repo->lastBmpId] = newEntry;
   repo->lastBmpId = newLastBmpId;

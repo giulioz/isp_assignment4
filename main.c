@@ -1,10 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "bmp.h"
 #include "bmpRepo.h"
-#include "cleanupMgr.h"
+#include "memoryMgr.h"
 #include "common.h"
 #include "opTree.h"
 #include "sdlViewer.h"
@@ -57,12 +58,12 @@ CommandType getCommandType(const char* command) {
   return CMD_INVALID;
 }
 
-int doCommand_Load(CleanupMgr* cleanupMgr, BmpRepo* bmpRepo,
+int doCommand_Load(MemoryMgr* memoryMgr, BmpRepo* bmpRepo,
                    const char* command) {
   // Syntax: load <PATH>
 
   // Parse path from command
-  char* path = getNWord(command, 1, cleanupMgr);
+  char* path = getNWord(command, 1, memoryMgr);
   if (!path) {
     printf(ERROR_ARGUMENTS);
     return 0;
@@ -113,6 +114,7 @@ int doCommand_Crop(BmpRepo* bmpRepo, const char* command) {
     return 0;
   }
 
+  // Get original BMP from repo
   BmpRepoEntry* originalBmp = bmpRepo_getBmpById(bmpRepo, bmpId);
   if (originalBmp == NULL) {
     printf(ERROR_NO_BMPID);
@@ -171,29 +173,80 @@ void doCommand_DisplayBmps(BmpRepo* bmpRepo) {
   }
 }
 
+int doCommand_Place(MemoryMgr* memoryMgr, BmpRepo* bmpRepo, OpTree* opTree,
+                    const char* command, int canvasWidth, int canvasHeight) {
+  // Syntax: place <BMP_ID> <CANVAS_X> <CANVAS_Y> <BLEND_MODE>
+
+  int bmpId = -1;
+  int canvasX = -1, canvasY = -1;
+  char blendMode = 0;
+
+  // Parse parameters from command
+  if (sscanf(command, "place %d %d %d %c", &bmpId, &canvasX, &canvasY,
+             &blendMode) != 4) {
+    printf(ERROR_ARGUMENTS);
+    return 0;
+  }
+
+  // Get BMP entry from repo
+  BmpRepoEntry* bmpEntry = bmpRepo_getBmpById(bmpRepo, bmpId);
+  if (bmpEntry == NULL) {
+    printf(ERROR_NO_BMPID);
+    return 0;
+  }
+
+  // Sanity checks
+  if (blendMode != 'n' && blendMode != 'm' && blendMode != 's') {
+    printf(ERROR_INV_BLENDMODE);
+    return 0;
+  }
+  if (canvasX < 0 || canvasY < 0 || canvasX >= canvasWidth ||
+      canvasY >= canvasHeight) {
+    printf(ERROR_CANVAS_COORDS);
+    return 0;
+  }
+  if (canvasX + bmpEntry->width > canvasWidth ||
+      canvasY + bmpEntry->height > canvasHeight) {
+    printf(ERROR_BMP_FIT);
+    return 0;
+  }
+
+  // Create new layer
+  // OpTreeNode* newOpNode =
+  //     opTree_createNode(*currentOpNode, *lastLayerId + 1, cleanupMgr);
+  // if (*currentOpNode == NULL) {
+  //   // memory allocation failed
+  //   return -1;
+  // }
+
+  printf("Switched to layer %d\n", 0);
+
+  return 0;
+}
+
 int main(int argc, char* argv[]) {
   int canvasWidth = 0, canvasHeight = 0;
-  BmpRepo* bmpRepo;
-  OpTreeNode* rootOpNode;
-  CleanupMgr* cleanupMgr;
+  BmpRepo* bmpRepo = NULL;
+  OpTree* opTree = NULL;
+  MemoryMgr* memoryMgr = NULL;
 
   //
   // Init all
   //
-  cleanupMgr = cleanupMgr_init();
-  if (cleanupMgr == NULL) {
+  memoryMgr = memoryMgr_init();
+  if (memoryMgr == NULL) {
     return 1;
   }
 
-  bmpRepo = bmpRepo_init(cleanupMgr);
+  bmpRepo = bmpRepo_init(memoryMgr);
   if (bmpRepo == NULL) {
-    cleanupMgr_cleanupAll(cleanupMgr);
+    memoryMgr_cleanupAll(memoryMgr);
     return 1;
   }
 
-  rootOpNode = opTree_createRoot(cleanupMgr);
-  if (rootOpNode == NULL) {
-    cleanupMgr_cleanupAll(cleanupMgr);
+  opTree = opTree_init(memoryMgr);
+  if (opTree == NULL) {
+    memoryMgr_cleanupAll(memoryMgr);
     return 1;
   }
 
@@ -226,7 +279,7 @@ int main(int argc, char* argv[]) {
   while (running) {
     printf("> ");
 
-    char* command = readStringAlloc(cleanupMgr);
+    char* command = readStringAlloc(memoryMgr);
     CommandType cmdType = getCommandType(command);
 
     switch (cmdType) {
@@ -250,15 +303,23 @@ int main(int argc, char* argv[]) {
         break;
 
       case CMD_LOAD:
-        if (doCommand_Load(cleanupMgr, bmpRepo, command) == -1) {
-          cleanupMgr_cleanupAll(cleanupMgr);
+        if (doCommand_Load(memoryMgr, bmpRepo, command) == -1) {
+          memoryMgr_cleanupAll(memoryMgr);
           return 1;
         }
         break;
 
       case CMD_CROP:
         if (doCommand_Crop(bmpRepo, command) == -1) {
-          cleanupMgr_cleanupAll(cleanupMgr);
+          memoryMgr_cleanupAll(memoryMgr);
+          return 1;
+        }
+        break;
+
+      case CMD_PLACE:
+        if (doCommand_Place(memoryMgr, bmpRepo, opTree, command, canvasWidth,
+                            canvasHeight) == -1) {
+          memoryMgr_cleanupAll(memoryMgr);
           return 1;
         }
         break;
@@ -268,7 +329,7 @@ int main(int argc, char* argv[]) {
         break;
     }
 
-    cleanupMgr_freeSingle(cleanupMgr, command);
+    command = memoryMgr_free(memoryMgr, command);
   }
 
   // bmpEntryDisplayImage(entry);
@@ -276,7 +337,7 @@ int main(int argc, char* argv[]) {
   //
   // Cleanup
   //
-  cleanupMgr_cleanupAll(cleanupMgr);
+  memoryMgr_cleanupAll(memoryMgr);
 
   return 0;
 }

@@ -4,11 +4,11 @@
 #include <stdio.h>
 
 #include "bmp.h"
-#include "cleanupMgr.h"
+#include "memoryMgr.h"
 
-char* readStringAlloc(CleanupMgr* mgr);
+char* readStringAlloc(MemoryMgr* mgr);
 
-char* getNWord(const char* str, int n, CleanupMgr* mgr);
+char* getNWord(const char* str, int n, MemoryMgr* mgr);
 
 FILE* bmpReadHeader(const char* filename, BmpHeader* header);
 

@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 #include "bmp.h"
-#include "cleanupMgr.h"
+#include "memoryMgr.h"
 
 #define BMP_STRIDE 4
 
@@ -27,12 +27,12 @@ typedef struct BmpRepo {
   // getBmpById could be invalidated by a realloc in createEmptyBmp.
   BmpRepoEntry** entries;
 
-  // We keep the CleanupMgr here to make memory management streamlined
-  CleanupMgr* mgr;
+  // We keep the MemoryMgr here to make memory management streamlined
+  MemoryMgr* mgr;
 } BmpRepo;
 
 // Returns NULL if memory allocation failed
-BmpRepo* bmpRepo_init(CleanupMgr* mgr);
+BmpRepo* bmpRepo_init(MemoryMgr* mgr);
 
 // Returns NULL if memory allocation failed
 BmpRepoEntry* bmpRepo_createEmptyBmp(BmpRepo* repo, int width, int height);

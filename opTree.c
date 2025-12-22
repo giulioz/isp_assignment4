@@ -6,11 +6,30 @@
 
 #include "strings.h"
 
-OpTreeNode* opTree_createNode(OpTreeNode* parent, int layerId,
-                              CleanupMgr* mgr) {
+OpTree* opTree_init(MemoryMgr* mgr) {
   assert(mgr != NULL);
 
-  OpTreeNode* node = (OpTreeNode*)malloc(sizeof(OpTreeNode));
+  OpTree* tree = (OpTree*)memoryMgr_malloc(mgr, sizeof(OpTree));
+  if (tree != NULL) {
+    tree->mgr = mgr;
+
+    tree->root = opTree_createNode(tree, NULL, 0);
+    if (tree->root == NULL) {
+      return NULL;
+    }
+    tree->current = tree->root;
+    tree->lastLayerId = 0;
+  } else {
+    printf(ERROR_MEMALLOC);
+  }
+  return tree;
+}
+
+OpTreeNode* opTree_createNode(OpTree* tree, OpTreeNode* parent, int layerId) {
+  assert(tree != NULL);
+
+  OpTreeNode* node =
+      (OpTreeNode*)memoryMgr_malloc(tree->mgr, sizeof(OpTreeNode));
   if (node != NULL) {
     node->parent = parent;
     node->children = NULL;
@@ -19,34 +38,26 @@ OpTreeNode* opTree_createNode(OpTreeNode* parent, int layerId,
     node->associatedBmp = NULL;
     node->destX = 0;
     node->destY = 0;
-    node->srcX = 0;
-    node->srcY = 0;
-    node->clipWidth = 0;
-    node->clipHeight = 0;
     node->blendMode = BLEND_NORMAL;
-    cleanupMgr_addPtr(mgr, node);
   } else {
     printf(ERROR_MEMALLOC);
   }
   return node;
 }
 
-OpTreeNode* opTree_createRoot(CleanupMgr* mgr) {
-  return opTree_createNode(NULL, 0, mgr);
-}
-
-int opTree_appendChildNode(OpTreeNode* parent, OpTreeNode* child,
-                           CleanupMgr* mgr) {
+int opTree_appendChildNode(OpTree* tree, OpTreeNode* parent,
+                           OpTreeNode* child) {
+  assert(tree != NULL);
   assert(parent != NULL);
   assert(child != NULL);
 
-  OpTreeNode** newChildren = (OpTreeNode**)realloc(
-      parent->children, (parent->nChildren + 1) * sizeof(OpTreeNode*));
+  OpTreeNode** newChildren = (OpTreeNode**)memoryMgr_realloc(
+      tree->mgr, parent->children,
+      (parent->nChildren + 1) * sizeof(OpTreeNode*));
   if (newChildren == NULL) {
     printf(ERROR_MEMALLOC);
     return -1;
   }
-  cleanupMgr_replacePtr(mgr, parent->children, newChildren);
 
   parent->children = newChildren;
   parent->children[parent->nChildren] = child;
@@ -58,5 +69,28 @@ int opTree_appendChildNode(OpTreeNode* parent, OpTreeNode* child,
   return 0;
 }
 
-BmpRepoEntry* opTree_renderBranch(OpTreeNode* endpoint, BmpRepo* bmpRepo,
-                                  CleanupMgr* mgr) {}
+int opTree_appendNewToCurrent(OpTree* tree, BmpRepoEntry* associatedBmp,
+                              int destX, int destY, BlendMode blendMode) {
+  assert(tree != NULL);
+
+  // Create and fill new node
+  OpTreeNode* child =
+      opTree_createNode(tree, tree->current, tree->lastLayerId + 1);
+  if (child == NULL) {
+    return -1;
+  }
+  child->associatedBmp = associatedBmp;
+  child->destX = destX;
+  child->destY = destY;
+  child->blendMode = blendMode;
+  tree->lastLayerId++;
+
+  int result = opTree_appendChildNode(tree, tree->current, child);
+  if (result == 0) {
+    tree->current = child;
+  }
+  return result;
+}
+
+BmpRepoEntry* opTree_renderBranch(OpTree* tree, OpTreeNode* endpoint,
+                                  BmpRepo* bmpRepo) {}

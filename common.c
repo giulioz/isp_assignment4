@@ -1,28 +1,27 @@
 #include "common.h"
-#include "strings.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
-char* readStringAlloc(CleanupMgr* mgr) {
+#include "strings.h"
+
+char* readStringAlloc(MemoryMgr* mgr) {
   size_t size = 1;
   size_t len = 0;
-  char* str = (char*)calloc(size, sizeof(char));
+  char* str = (char*)memoryMgr_malloc(mgr, size * sizeof(char));
   if (str == NULL) {
     return NULL;
   }
-  cleanupMgr_addPtr(mgr, str);
 
   int c;
   while ((c = getchar()) != '\n' && c != EOF) {
     str[len++] = (char)c;
     if (len == size) {
       size += 1;
-      char* newStr = (char*)realloc(str, size);
+      char* newStr = (char*)memoryMgr_realloc(mgr, str, size * sizeof(char));
       if (newStr == NULL) {
         return NULL;
       }
-      cleanupMgr_replacePtr(mgr, str, newStr);
       str = newStr;
     }
   }
@@ -30,7 +29,7 @@ char* readStringAlloc(CleanupMgr* mgr) {
   return str;
 }
 
-char* getNWord(const char* str, int n, CleanupMgr* mgr) {
+char* getNWord(const char* str, int n, MemoryMgr* mgr) {
   int currentWord = 0;
   size_t startIdx = 0;
   size_t endIdx = 0;
@@ -70,11 +69,10 @@ char* getNWord(const char* str, int n, CleanupMgr* mgr) {
 
   // Allocate memory for the nth word
   size_t wordLength = endIdx - startIdx;
-  char* word = (char*)malloc((wordLength + 1) * sizeof(char));
+  char* word = (char*)memoryMgr_malloc(mgr, (wordLength + 1) * sizeof(char));
   if (word == NULL) {
     return NULL;
   }
-  cleanupMgr_addPtr(mgr, word);
 
   // Copy the nth word into the allocated memory
   for (size_t j = 0; j < wordLength; j++) {

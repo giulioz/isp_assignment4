@@ -2,7 +2,7 @@
 #define OPTREE_H
 
 #include "bmpRepo.h"
-#include "cleanupMgr.h"
+#include "memoryMgr.h"
 
 typedef enum BlendMode {
   BLEND_NORMAL,
@@ -15,8 +15,6 @@ typedef struct OpTreeNode {
 
   BmpRepoEntry* associatedBmp;
   int destX, destY;
-  int srcX, srcY;
-  int clipWidth, clipHeight;
   BlendMode blendMode;
 
   // Tree structure
@@ -25,17 +23,29 @@ typedef struct OpTreeNode {
   int nChildren;
 } OpTreeNode;
 
-// Returns NULL if failed
-OpTreeNode* opTree_createNode(OpTreeNode* parent, int layerId, CleanupMgr* mgr);
+typedef struct OpTree {
+  OpTreeNode* root;
+  OpTreeNode* current;
+  int lastLayerId;
+
+  // We keep the MemoryMgr here to make memory management streamlined
+  MemoryMgr* mgr;
+} OpTree;
 
 // Returns NULL if failed
-OpTreeNode* opTree_createRoot(CleanupMgr* mgr);
+OpTree* opTree_init(MemoryMgr* mgr);
+
+// Returns NULL if failed
+OpTreeNode* opTree_createNode(OpTree* tree, OpTreeNode* parent, int layerId);
 
 // Returns -1 if failed
-int opTree_appendChildNode(OpTreeNode* parent, OpTreeNode* child,
-                           CleanupMgr* mgr);
+int opTree_appendChildNode(OpTree* tree, OpTreeNode* parent, OpTreeNode* child);
 
-BmpRepoEntry* opTree_renderBranch(OpTreeNode* endpoint, BmpRepo* bmpRepo,
-                                  CleanupMgr* mgr);
+// Returns -1 if failed
+int opTree_appendNewToCurrent(OpTree* tree, BmpRepoEntry* associatedBmp,
+                              int destX, int destY, BlendMode blendMode);
+
+BmpRepoEntry* opTree_renderBranch(OpTree* tree, OpTreeNode* endpoint,
+                                  BmpRepo* bmpRepo);
 
 #endif  // OPTREE_H
