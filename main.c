@@ -241,13 +241,13 @@ int doCommand_Print(BmpRepo* bmpRepo, OpTree* opTree, int canvasWidth,
   // Cols header
   printf("   ");
   for (int x = 0; x < canvasWidth; x++) {
-    printf("%02d ", x);
+    printf("%02d ", x + 1);
   }
   printf("\n");
 
   // Body
   for (int y = canvasHeight - 1; y >= 0; y--) {
-    printf("%02d|", y);
+    printf("%02d|", y + 1);
     for (int x = 0; x < canvasWidth; x++) {
       uint8_t* pixel = &buffer[(y * canvasWidth + x) * BMP_STRIDE];
       printf("\033[38;2;%d;%d;%dm███\033[0m", pixel[2], pixel[1], pixel[0]);
