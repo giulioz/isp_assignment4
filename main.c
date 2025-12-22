@@ -59,6 +59,7 @@ CommandType getCommandType(const char* command) {
   return CMD_INVALID;
 }
 
+// Implements the "load" command
 int doCommand_Load(MemoryMgr* memoryMgr, BmpRepo* bmpRepo,
                    const char* command) {
   // Syntax: load <PATH>
@@ -110,6 +111,7 @@ int doCommand_Load(MemoryMgr* memoryMgr, BmpRepo* bmpRepo,
   return 0;
 }
 
+// Implements the "crop" command
 int doCommand_Crop(BmpRepo* bmpRepo, const char* command) {
   // Syntax: crop <BMP_ID> <TOP_X> <TOP_Y> <BOTTOM_X> <BOTTOM_Y>
 
@@ -175,6 +177,7 @@ int doCommand_Crop(BmpRepo* bmpRepo, const char* command) {
   return 0;
 }
 
+// Implements the "place" command
 int doCommand_Place(BmpRepo* bmpRepo, OpTree* opTree, const char* command,
                     int canvasWidth, int canvasHeight) {
   // Syntax: place <BMP_ID> <CANVAS_X> <CANVAS_Y> <BLEND_MODE>
@@ -233,6 +236,7 @@ int doCommand_Place(BmpRepo* bmpRepo, OpTree* opTree, const char* command,
   return 0;
 }
 
+// Implements the "undo" command
 void doCommand_Undo(OpTree* opTree) {
   if (!opTree_undo(opTree)) {
     printf("Switched to layer %d\n", opTree->current->layerId);
@@ -241,6 +245,7 @@ void doCommand_Undo(OpTree* opTree) {
   }
 }
 
+// Implements the "print" command
 int doCommand_Print(BmpRepo* bmpRepo, OpTree* opTree, int canvasWidth,
                     int canvasHeight) {
   uint8_t* buffer =
@@ -278,6 +283,7 @@ int doCommand_Print(BmpRepo* bmpRepo, OpTree* opTree, int canvasWidth,
   return 0;
 }
 
+// Implements the "switch" command
 void doCommand_Switch(OpTree* opTree, const char* command) {
   // Syntax: switch <LAYER_ID>
 
@@ -296,6 +302,7 @@ void doCommand_Switch(OpTree* opTree, const char* command) {
   }
 }
 
+// Implements the "bmps" command
 void doCommand_DisplayBmps(BmpRepo* bmpRepo) {
   for (int i = 0; i < bmpRepo->lastBmpId; i++) {
     BmpRepoEntry* entry = bmpRepo->entries[i];
@@ -305,6 +312,7 @@ void doCommand_DisplayBmps(BmpRepo* bmpRepo) {
   }
 }
 
+// Implements the "save" command
 int doCommand_Save(OpTree* opTree, BmpRepo* bmpRepo, const char* command,
                    int canvasWidth, int canvasHeight) {
   // Syntax: save <FILE_PATH>
@@ -389,8 +397,8 @@ int main(int argc, char* argv[]) {
 
   int running = 1;
   while (running) {
+    // Read and parse command
     printf("> ");
-
     char* command = readStringAlloc(memoryMgr);
     CommandType cmdType = getCommandType(command);
 
@@ -470,8 +478,6 @@ int main(int argc, char* argv[]) {
 
     command = memoryMgr_free(memoryMgr, command);
   }
-
-  // bmpEntryDisplayImage(entry);
 
   //
   // Cleanup
