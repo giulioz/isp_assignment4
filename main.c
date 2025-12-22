@@ -88,7 +88,8 @@ int doCommand_Load(MemoryMgr* memoryMgr, BmpRepo* bmpRepo,
 
   // Read pixel data
   fseek(file, header.offset_pixel_array_, SEEK_SET);
-  if (fread(entry->pixelData, 1, header.raw_bitmap_data_size_, file) != header.raw_bitmap_data_size_) {
+  size_t bytesToRead = header.width_ * header.height_ * BMP_STRIDE;
+  if (fread(entry->pixelData, 1, bytesToRead, file) != bytesToRead) {
     printf("[ERROR] Failed to read pixel data!\n");
     fclose(file);
     return 0;
