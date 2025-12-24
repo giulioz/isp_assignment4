@@ -137,12 +137,12 @@ int doCommand_Crop(BmpRepo* bmpRepo, const char* command) {
   }
 
   // Sanity checks
-  if (topX < 0 || topY < 0 || bottomX <= topX || bottomY <= topY) {
-    printf(ERROR_INVALID_RECT);
-    return 0;
-  }
   if (bottomX > originalBmp->width || bottomY > originalBmp->height) {
     printf(ERROR_CROP_OUTSIDE);
+    return 0;
+  }
+  if (topX < 0 || topY < 0 || bottomX <= topX || bottomY <= topY) {
+    printf(ERROR_INVALID_RECT);
     return 0;
   }
 
@@ -207,11 +207,6 @@ int doCommand_Place(BmpRepo* bmpRepo, OpTree* opTree, const char* command,
   }
 
   // Sanity checks
-  if (blendMode != BLEND_NORMAL && blendMode != BLEND_MUL &&
-      blendMode != BLEND_SUB) {
-    printf(ERROR_INV_BLENDMODE);
-    return 0;
-  }
   if (canvasX < 0 || canvasY < 0 || canvasX >= canvasWidth ||
       canvasY >= canvasHeight) {
     printf(ERROR_CANVAS_COORDS);
@@ -220,6 +215,11 @@ int doCommand_Place(BmpRepo* bmpRepo, OpTree* opTree, const char* command,
   if (canvasX + bmpEntry->width > canvasWidth ||
       canvasY + bmpEntry->height > canvasHeight) {
     printf(ERROR_BMP_FIT);
+    return 0;
+  }
+  if (blendMode != BLEND_NORMAL && blendMode != BLEND_MUL &&
+      blendMode != BLEND_SUB) {
+    printf(ERROR_INV_BLENDMODE);
     return 0;
   }
 
@@ -257,7 +257,7 @@ int doCommand_Print(BmpRepo* bmpRepo, OpTree* opTree, int canvasWidth,
   // Cols header
   printf("   ");
   for (int x = 0; x < canvasWidth; x++) {
-    printf("%02d ", x + 1);
+    printf(" %02d", x + 1);
   }
   printf("\n");
 
@@ -335,7 +335,9 @@ int doCommand_Save(OpTree* opTree, BmpRepo* bmpRepo, const char* command,
     return 0;
   }
 
-  fwrite(buffer, BMP_STRIDE * canvasWidth * canvasHeight, 1, file);
+  for (int y = canvasHeight - 1; y >= 0; y--)  {
+    fwrite(buffer + y * canvasWidth * BMP_STRIDE, BMP_STRIDE * canvasWidth, 1, file);
+  }
 
   fclose(file);
   printf("Successfully saved image to %s\n", path);
@@ -398,7 +400,7 @@ int main(int argc, char* argv[]) {
   int running = 1;
   while (running) {
     // Read and parse command
-    printf("> ");
+    printf(" > ");
     char* command = readStringAlloc(memoryMgr);
     CommandType cmdType = getCommandType(command);
 

@@ -143,7 +143,7 @@ void opTree_printRecursive(OpTreeNode* node, int depth) {
     printf("Layer %d\n", node->layerId);
   } else {
     printf("Layer %d renders BMP %d at %d %d\n", node->layerId, node->bmpId,
-           node->destX, node->destY);
+           node->destX + 1, node->destY + 1);
   }
 
   for (int i = 0; i < node->nChildren; i++) {
