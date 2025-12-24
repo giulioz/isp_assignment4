@@ -20,16 +20,7 @@ BmpRepo* bmpRepo_init(MemoryMgr* mgr) {
 BmpRepoEntry* bmpRepo_createEmptyBmp(BmpRepo* repo, int width, int height) {
   assert(repo != NULL);
 
-  // Add space for a new entry
-  int newLastBmpId = repo->lastBmpId + 1;
-  BmpRepoEntry** newEntries = (BmpRepoEntry**)memoryMgr_realloc(
-      repo->mgr, repo->entries, newLastBmpId * sizeof(BmpRepoEntry*));
-  if (newEntries == NULL) {
-    return NULL;
-  }
-  repo->entries = newEntries;
-
-  // Array of pointers, see comment in BmpRepo struct
+  // Allocate and initialize the new entry
   BmpRepoEntry* newEntry =
       (BmpRepoEntry*)memoryMgr_malloc(repo->mgr, sizeof(BmpRepoEntry));
   newEntry->bmpId = repo->lastBmpId;
@@ -41,6 +32,17 @@ BmpRepoEntry* bmpRepo_createEmptyBmp(BmpRepo* repo, int width, int height) {
     return NULL;
   }
 
+  // Add space for a new entry in the dynamic array
+  // Array of pointers, see comment in BmpRepo struct
+  int newLastBmpId = repo->lastBmpId + 1;
+  BmpRepoEntry** newEntries = (BmpRepoEntry**)memoryMgr_realloc(
+      repo->mgr, repo->entries, newLastBmpId * sizeof(BmpRepoEntry*));
+  if (newEntries == NULL) {
+    return NULL;
+  }
+  repo->entries = newEntries;
+
+  // Add the new entry to the array
   repo->entries[repo->lastBmpId] = newEntry;
   repo->lastBmpId = newLastBmpId;
   return newEntry;
@@ -49,6 +51,7 @@ BmpRepoEntry* bmpRepo_createEmptyBmp(BmpRepo* repo, int width, int height) {
 BmpRepoEntry* bmpRepo_getBmpById(BmpRepo* repo, int bmpId) {
   assert(repo != NULL);
 
+  // Just do a linear search
   for (int i = 0; i < repo->lastBmpId; i++) {
     if (repo->entries[i]->bmpId == bmpId) {
       return repo->entries[i];
